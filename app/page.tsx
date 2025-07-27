@@ -167,20 +167,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Star className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  Premium Quality
-                </h3>
-                <p className="text-gray-600">
-                  High-quality content created by industry experts and
-                  experienced developers.
-                </p>
-              </div>
-            </div>
 
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -219,14 +205,6 @@ export default function HomePage() {
                 Sign Up Free
                 <ArrowRight className="h-5 w-5" />
               </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="px-8 py-3 text-lg border-white text-white hover:bg-white hover:text-gray-900"
-            >
-              <Link href="/pricing">View All Plans</Link>
             </Button>
           </div>
         </div>

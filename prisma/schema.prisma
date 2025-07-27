@@ -16,17 +16,10 @@ datasource db {
 
 enum UserRole {
   USER
-  PREMIUM
   ADMIN
   BANNED
 }
 
-enum MembershipStatus {
-  ACTIVE
-  INACTIVE
-  CANCELED
-  PAST_DUE
-}
 
 // NextAuth.js required models
 model Account {
@@ -76,123 +69,13 @@ model User {
   emailVerified    DateTime?        @map("email_verified")
   image            String?
   role             UserRole         @default(USER)
-  stripeProductId  String?          @map("stripe_product_id")
-  membershipStatus MembershipStatus @default(ACTIVE) @map("membership_status")
-  tokens           Int              @default(0)
-  tokensExpiresAt  DateTime?        @map("tokens_expires_at")
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @updatedAt @map("updated_at")
 
   // Relations
   accounts       Account[]
   sessions       Session[]
-  subscriptions  UserSubscription[]
-  customer       StripeCustomer?
-  stripeProduct  StripeProduct?     @relation(fields: [stripeProductId], references: [id])
-  paymentHistory PaymentHistory[]
 
   @@map("users")
 }
 
-// Stripe Products - Single source of truth for subscription tiers
-model StripeProduct {
-  id          String   @id // Stripe product ID
-  name        String
-  description String?
-  active      Boolean  @default(true)
-  metadata    Json? // Store tier info like features, displayName, sortOrder
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  prices         StripePrice[]
-  users          User[]
-  subscriptions  UserSubscription[]
-  paymentHistory PaymentHistory[]
-
-  @@map("stripe_products")
-}
-
-// Stripe Prices
-model StripePrice {
-  id              String   @id // Stripe price ID
-  productId       String   @map("product_id")
-  active          Boolean  @default(true)
-  currency        String
-  type            String // one_time, recurring
-  unitAmount      Int?     @map("unit_amount") // Amount in cents
-  interval        String? // month, year (for recurring)
-  intervalCount   Int?     @map("interval_count")
-  trialPeriodDays Int?     @map("trial_period_days")
-  metadata        Json?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  product       StripeProduct      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  subscriptions UserSubscription[]
-
-  @@map("stripe_prices")
-}
-
-// Stripe Customer
-model StripeCustomer {
-  id               String   @id @default(cuid())
-  userId           String   @unique @map("user_id")
-  stripeCustomerId String   @unique @map("stripe_customer_id")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscriptions UserSubscription[]
-
-  @@map("stripe_customers")
-}
-
-// User Subscriptions - Simplified to reference products directly
-model UserSubscription {
-  id                   String    @id @default(cuid())
-  userId               String    @map("user_id")
-  stripeCustomerId     String    @map("stripe_customer_id")
-  stripeSubscriptionId String    @unique @map("stripe_subscription_id")
-  stripePriceId        String    @map("stripe_price_id")
-  stripeProductId      String    @map("stripe_product_id")
-  status               String // active, canceled, incomplete, past_due, etc.
-  currentPeriodStart   DateTime  @map("current_period_start")
-  currentPeriodEnd     DateTime  @map("current_period_end")
-  cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
-  canceledAt           DateTime? @map("canceled_at")
-  trialStart           DateTime? @map("trial_start")
-  trialEnd             DateTime? @map("trial_end")
-  metadata             Json?
-  createdAt            DateTime  @default(now()) @map("created_at")
-  updatedAt            DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeCustomer StripeCustomer @relation(fields: [stripeCustomerId], references: [id], onDelete: Cascade)
-  stripePrice    StripePrice    @relation(fields: [stripePriceId], references: [id], onDelete: Cascade)
-  stripeProduct  StripeProduct  @relation(fields: [stripeProductId], references: [id], onDelete: Cascade)
-
-  @@map("user_subscriptions")
-}
-
-// Payment History - Simplified
-model PaymentHistory {
-  id                    String   @id @default(cuid())
-  userId                String   @map("user_id")
-  stripePaymentIntentId String   @unique @map("stripe_payment_intent_id")
-  amount                Int // Amount in cents
-  currency              String
-  status                String // succeeded, failed, pending, etc.
-  stripeProductId       String?  @map("stripe_product_id")
-  description           String?
-  metadata              Json?
-  createdAt             DateTime @default(now()) @map("created_at")
-
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeProduct StripeProduct? @relation(fields: [stripeProductId], references: [id])
-
-  @@map("payment_history")
-}

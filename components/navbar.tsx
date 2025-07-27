@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreditCard, Crown, LogOut, Menu, Shield, User, X } from "lucide-react";
+import { LogOut, Menu, Shield, User, X } from "lucide-react";
 import { User as NextAuthUser } from "next-auth";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
@@ -21,52 +21,15 @@ import { toast } from "sonner";
 interface NavbarProps {
   user?: NextAuthUser;
   isAdmin?: boolean;
-  hasAccess?: boolean;
-  hasSubscription?: boolean;
-  tokenInfo?: {
-    tokens: number;
-    expired: boolean;
-    expiresAt?: Date;
-  };
 }
 
 export function Navbar({
   user,
   isAdmin,
-  hasAccess,
-  hasSubscription,
-  tokenInfo,
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isPortalLoading, setIsPortalLoading] = useState(false);
-
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
-  };
-
-  const handleManageSubscription = async () => {
-    setIsPortalLoading(true);
-    try {
-      const response = await fetch("/api/stripe/customer-portal", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Redirect to Stripe Customer Portal
-        window.location.href = data.url;
-      } else {
-        toast.error(data.error || "Failed to open billing portal");
-      }
-    } catch (error) {
-      toast.error("Failed to open billing portal");
-    } finally {
-      setIsPortalLoading(false);
-    }
   };
 
   const getUserInitials = (name?: string | null, email?: string | null) => {
@@ -110,22 +73,6 @@ export function Navbar({
                 >
                   Free Content
                 </Link>
-                {hasAccess ? (
-                  <Link
-                    href="/premium-content"
-                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1"
-                  >
-                    <Crown className="h-4 w-4 text-yellow-500" />
-                    Premium
-                  </Link>
-                ) : (
-                  <Link
-                    href="/pricing"
-                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1"
-                  >
-                    Pricing
-                  </Link>
-                )}
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -142,17 +89,6 @@ export function Navbar({
           <div className="flex items-center">
             {user ? (
               <>
-                {/* Token display */}
-                {tokenInfo && (
-                  <div className="hidden sm:block mr-2">
-                    <Badge
-                      variant={tokenInfo.expired ? "destructive" : "default"}
-                      className="mr-2"
-                    >
-                      {tokenInfo.tokens} tokens
-                    </Badge>
-                  </div>
-                )}
 
                 {/* Desktop User Menu */}
                 <div className="hidden sm:block">
@@ -197,29 +133,6 @@ export function Navbar({
                         </Link>
                       </DropdownMenuItem>
 
-                      {hasSubscription && (
-                        <DropdownMenuItem
-                          onClick={handleManageSubscription}
-                          className="cursor-pointer"
-                          disabled={isPortalLoading}
-                        >
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          <span>
-                            {isPortalLoading
-                              ? "Loading..."
-                              : "Manage Subscription"}
-                          </span>
-                        </DropdownMenuItem>
-                      )}
-
-                      {!hasAccess && (
-                        <DropdownMenuItem asChild>
-                          <Link href="/pricing" className="cursor-pointer">
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            <span>Upgrade to Premium</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
 
                       {isAdmin && (
                         <DropdownMenuItem asChild>
@@ -286,16 +199,6 @@ export function Navbar({
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
               </div>
-              {tokenInfo && (
-                <div className="mt-2">
-                  <Badge
-                    variant={tokenInfo.expired ? "destructive" : "default"}
-                    className="text-xs"
-                  >
-                    {tokenInfo.tokens} tokens
-                  </Badge>
-                </div>
-              )}
             </div>
 
             {/* Navigation links */}
@@ -313,24 +216,6 @@ export function Navbar({
             >
               Free Content
             </Link>
-            {hasAccess ? (
-              <Link
-                href="/premium-content"
-                className="flex items-center px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Crown className="mr-2 h-4 w-4 text-yellow-500" />
-                Premium Content
-              </Link>
-            ) : (
-              <Link
-                href="/pricing"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-            )}
             {isAdmin && (
               <Link
                 href="/admin"
@@ -342,20 +227,6 @@ export function Navbar({
               </Link>
             )}
 
-            {/* Manage Subscription for mobile */}
-            {hasSubscription ? (
-              <button
-                onClick={() => {
-                  handleManageSubscription();
-                  setMobileMenuOpen(false);
-                }}
-                className="flex items-center w-full px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                disabled={isPortalLoading}
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                {isPortalLoading ? "Loading..." : "Manage Subscription"}
-              </button>
-            ) : null}
 
             <div className="pt-2 border-t border-gray-200">
               <button

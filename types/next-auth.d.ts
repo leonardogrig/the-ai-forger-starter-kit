@@ -11,10 +11,6 @@ declare module "next-auth" {
       image?: string | null;
       role: UserRole;
       createdAt: Date;
-      stripeProductId?: string | null;
-      membershipStatus?: string | null;
-      tokens: number;
-      tokensExpiresAt?: Date | null;
     } & DefaultSession["user"];
   }
 
@@ -22,10 +18,6 @@ declare module "next-auth" {
     id: string;
     role: UserRole;
     createdAt: Date;
-    stripeProductId?: string | null;
-    membershipStatus?: string | null;
-    tokens: number;
-    tokensExpiresAt?: Date | null;
   }
 }
 
@@ -33,15 +25,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: UserRole;
-    stripeProductId?: string | null;
-    membershipStatus?: string | null;
-    tokens: number;
-    tokensExpiresAt?: Date | null;
   }
 }
 
-declare global {
-  interface Window {
-    Stripe: any;
-  }
-}

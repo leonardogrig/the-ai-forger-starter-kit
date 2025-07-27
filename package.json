@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:sync-stripe": "tsx prisma/sync-stripe-products.ts",
     "db:setup-admin": "tsx prisma/seed-admin.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
@@ -35,7 +34,6 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.58.0",
     "sonner": "^2.0.5",
-    "stripe": "^18.2.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

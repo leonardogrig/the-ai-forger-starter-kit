@@ -54,9 +54,6 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.role = user.role;
         session.user.id = user.id;
-        session.user.stripeProductId = user.stripeProductId;
-        session.user.tokens = user.tokens;
-        session.user.tokensExpiresAt = user.tokensExpiresAt;
       }
       return session;
     },
@@ -70,3 +67,16 @@ export { handler as GET, handler as POST };
 const getSession = cache(() => getServerSession(authOptions));
 
 export default getSession;
+
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+    return user?.role === "ADMIN";
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    return false;
+  }
+}

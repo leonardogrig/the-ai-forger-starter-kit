@@ -1,7 +1,7 @@
 # The AI Forger Starter Kit - AI Assistant Guide
 
 ## Project Overview
-Next.js 15 + Stripe + NextAuth + Prisma + ShadcnUI starter kit for SaaS applications with subscription management and token-based usage tracking.
+Next.js 15 + NextAuth + Prisma + ShadcnUI starter kit for authentication-based applications.
 
 ## Detailed Documentation
 For comprehensive understanding of each system component, refer to the specialized documentation in `/for_llms/`:
@@ -9,7 +9,6 @@ For comprehensive understanding of each system component, refer to the specializ
 - **`design-patterns.md`** - Architecture patterns, code organization, and performance strategies
 - **`api.md`** - API routes, webhooks, security, and request/response patterns
 - **`authentication.md`** - NextAuth.js setup, session management, and access control
-- **`payments.md`** - Stripe integration, subscription flow, and token system
 - **`database.md`** - Prisma schema, relationships, and data operations
 - **`admin.md`** - Admin panel functionality and user management
 
@@ -23,7 +22,6 @@ npm run lint               # ESLint checking
 # Database
 npm run db:migrate         # Run Prisma migrations
 npm run db:generate        # Generate Prisma client
-npm run db:sync-stripe     # Sync Stripe products to database
 npm run db:setup-admin     # Set up admin user (requires ADMIN_EMAIL env)
 npm run db:reset           # Reset database
 ```
@@ -64,16 +62,11 @@ NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="32-char-secret"
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
-STRIPE_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
 ADMIN_EMAIL="admin@example.com"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ## Critical System Notes
 - **Admin Setup**: Run `db:setup-admin` AFTER user signs in (creates DB record first)
-- **Stripe Sync**: Webhooks handle automatic updates, manual sync available
-- **Token System**: 30-day expiration with auto-renewal for active subscribers
 - **Database Location**: Prisma client outputs to `app/generated/prisma` (custom location)
-- **Role Preservation**: Admin roles preserved during subscription changes
+- **User Roles**: Support for USER, ADMIN, and BANNED roles

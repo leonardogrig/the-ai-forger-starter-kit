@@ -1,6 +1,6 @@
 import AdminDashboard from "@/components/admin/admin-dashboard";
 import { authOptions } from "@/lib/auth";
-import { isUserAdmin } from "@/lib/subscription";
+import { isUserAdmin } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { PrismaClient } from "../generated/prisma";
@@ -19,46 +19,18 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const [users, subscriptions, totalUsersCount, totalRevenue] =
-    await Promise.all([
-      prisma.user.findMany({
-        include: {
-          subscriptions: {
-            where: { status: { in: ["active", "trialing"] } },
-            include: { stripeProduct: true },
-            take: 1,
-            orderBy: { createdAt: "desc" },
-          },
-          _count: {
-            select: {
-              subscriptions: true,
-              paymentHistory: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.userSubscription.findMany({
-        where: { status: { in: ["active", "trialing"] } },
-        include: {
-          user: { select: { name: true, email: true } },
-          stripeProduct: { select: { name: true } },
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.user.count(),
-      prisma.paymentHistory.aggregate({
-        _sum: { amount: true },
-      }),
-    ]);
+  const [users, totalUsersCount] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.user.count(),
+  ]);
 
   const stats = {
     totalUsers: totalUsersCount,
-    activeSubscriptions: subscriptions.length,
-    totalRevenue: totalRevenue._sum.amount || 0,
   };
 
   return (
-    <AdminDashboard users={users} subscriptions={subscriptions} stats={stats} />
+    <AdminDashboard users={users} stats={stats} />
   );
 }

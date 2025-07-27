@@ -2,17 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import {
-  CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Edit,
@@ -28,20 +19,13 @@ interface User {
   name: string | null;
   email: string;
   role: UserRole;
-  tokens: number;
-  tokensExpiresAt: Date | null;
-  subscriptions: any[];
-  _count: {
-    subscriptions: number;
-    paymentHistory: number;
-  };
 }
 
 interface UserManagementProps {
   users: User[];
   onUserUpdate: (
     userId: string,
-    updates: { role?: UserRole; tokens?: number; tokensExpiresAt?: Date }
+    updates: { role?: UserRole }
   ) => void;
 }
 
@@ -52,12 +36,8 @@ export default function UserManagement({
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editData, setEditData] = useState<{
     role: UserRole;
-    tokens: string;
-    tokensExpiresAt: Date | undefined;
   }>({
     role: UserRole.USER,
-    tokens: "0",
-    tokensExpiresAt: undefined,
   });
   const [updating, setUpdating] = useState<{ [key: string]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,10 +52,6 @@ export default function UserManagement({
     setEditingUser(user.id);
     setEditData({
       role: user.role,
-      tokens: user.tokens.toString(),
-      tokensExpiresAt: user.tokensExpiresAt
-        ? new Date(user.tokensExpiresAt)
-        : undefined,
     });
   };
 
@@ -83,18 +59,10 @@ export default function UserManagement({
     setEditingUser(null);
     setEditData({
       role: UserRole.USER,
-      tokens: "0",
-      tokensExpiresAt: undefined,
     });
   };
 
   const saveChanges = async (userId: string) => {
-    const tokens = parseInt(editData.tokens);
-    if (isNaN(tokens) || tokens < 0) {
-      toast.error("Please enter a valid number of tokens");
-      return;
-    }
-
     setUpdating((prev) => ({ ...prev, [userId]: true }));
     try {
       const response = await fetch("/api/admin/update-user", {
@@ -103,8 +71,6 @@ export default function UserManagement({
         body: JSON.stringify({
           userId,
           role: editData.role,
-          tokens,
-          tokensExpiresAt: editData.tokensExpiresAt?.toISOString(),
         }),
       });
 
@@ -112,8 +78,6 @@ export default function UserManagement({
 
       onUserUpdate(userId, {
         role: editData.role,
-        tokens,
-        tokensExpiresAt: editData.tokensExpiresAt,
       });
       setEditingUser(null);
       toast.success("User updated successfully");
@@ -128,8 +92,6 @@ export default function UserManagement({
     switch (role) {
       case UserRole.ADMIN:
         return "destructive";
-      case UserRole.PREMIUM:
-        return "default";
       case UserRole.BANNED:
         return "destructive";
       default:
@@ -137,9 +99,6 @@ export default function UserManagement({
     }
   };
 
-  const formatDate = (date: string | Date | null) => {
-    return date ? new Date(date).toLocaleDateString() : "Never";
-  };
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
@@ -164,10 +123,6 @@ export default function UserManagement({
               <tr className="border-b">
                 <th className="text-left p-3 font-medium">User</th>
                 <th className="text-left p-3 font-medium">Role</th>
-                <th className="text-left p-3 font-medium">Tokens</th>
-                <th className="text-left p-3 font-medium">Token Expiry</th>
-                <th className="text-left p-3 font-medium">Subscription</th>
-                <th className="text-left p-3 font-medium">Stats</th>
                 <th className="text-left p-3 font-medium">Actions</th>
               </tr>
             </thead>
@@ -196,7 +151,6 @@ export default function UserManagement({
                         className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value={UserRole.USER}>USER</option>
-                        <option value={UserRole.PREMIUM}>PREMIUM</option>
                         <option value={UserRole.ADMIN}>ADMIN</option>
                         <option value={UserRole.BANNED}>BANNED</option>
                       </select>
@@ -205,78 +159,6 @@ export default function UserManagement({
                         {user.role}
                       </Badge>
                     )}
-                  </td>
-                  <td className="p-3">
-                    {editingUser === user.id ? (
-                      <Input
-                        type="number"
-                        min="0"
-                        value={editData.tokens}
-                        onChange={(e) =>
-                          setEditData((prev) => ({
-                            ...prev,
-                            tokens: e.target.value,
-                          }))
-                        }
-                        disabled={updating[user.id]}
-                        className="w-20 h-8"
-                      />
-                    ) : (
-                      <span className="text-sm">{user.tokens}</span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    {editingUser === user.id ? (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="justify-start text-left font-normal"
-                            disabled={updating[user.id]}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {editData.tokensExpiresAt ? (
-                              format(editData.tokensExpiresAt, "PP")
-                            ) : (
-                              <span className="text-muted-foreground">
-                                Pick date
-                              </span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={editData.tokensExpiresAt}
-                            onSelect={(date) =>
-                              setEditData((prev) => ({
-                                ...prev,
-                                tokensExpiresAt: date,
-                              }))
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    ) : (
-                      <span className="text-sm">
-                        {formatDate(user.tokensExpiresAt)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <span className="text-sm">
-                      {user.subscriptions.length > 0
-                        ? user.subscriptions[0].stripeProduct?.name || "Active"
-                        : "None"}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <span className="text-sm text-muted-foreground">
-                      {user._count.subscriptions} subs •{" "}
-                      {user._count.paymentHistory} payments
-                    </span>
                   </td>
                   <td className="p-3">
                     {editingUser === user.id ? (

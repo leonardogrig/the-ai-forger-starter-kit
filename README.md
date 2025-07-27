@@ -1,6 +1,6 @@
-# Forger Starter Kit - Next.js + Stripe + NextAuth
+# Forger Starter Kit - Next.js + NextAuth
 
-A complete full-stack starter kit that integrates Next.js with Stripe payments, NextAuth authentication, and ShadcnUI components. This project provides a solid foundation for building SaaS applications with subscription-based business models.
+A complete full-stack starter kit that integrates Next.js with NextAuth authentication and ShadcnUI components. This project provides a solid foundation for building applications with authentication-based access control.
 
 ## 🚀 Features
 
@@ -8,7 +8,7 @@ A complete full-stack starter kit that integrates Next.js with Stripe payments, 
 
 - **NextAuth.js** integration with Prisma adapter
 - **Google OAuth** authentication
-- **Role-based access control** (USER, PREMIUM, ADMIN)
+- **Role-based access control** (USER, ADMIN, BANNED)
 - Session management and middleware protection
 - User profile management
 
@@ -18,31 +18,11 @@ A complete full-stack starter kit that integrates Next.js with Stripe payments, 
 - **PostgreSQL** database with enum support
 - Automated schema migrations
 - Database seeding support
-- **Simplified schema** - Stripe products as single source of truth
-
-### Payments & Subscriptions
-
-- **Stripe** integration for payment processing
-- Subscription management with webhooks
-- Dynamic pricing from Stripe products
-- Customer portal integration
-- Automatic subscription status updates
-- **Payment history tracking**
-
-### Token System
-
-- **Token-based usage tracking** from Stripe product metadata
-- Automatic token allocation on subscription
-- **30-day token expiration** with auto-renewal for active subscriptions
-- Token consumption tracking
-- Admin token management
 
 ### Admin Panel
 
-- **Comprehensive admin dashboard** at `/admin`
+- **Admin dashboard** at `/admin`
 - User management and role assignment
-- Subscription and payment overview
-- Product and token management
 - System statistics and analytics
 
 ### UI & Components
@@ -56,10 +36,7 @@ A complete full-stack starter kit that integrates Next.js with Stripe payments, 
 ### Content Access Control
 
 - Free tier content (authenticated users)
-- Premium content (subscription required)
-- **Token-based feature access**
 - Role-based access control
-- Subscription status validation
 
 ## 📁 Project Structure
 
@@ -67,32 +44,23 @@ A complete full-stack starter kit that integrates Next.js with Stripe payments, 
 ├── app/
 │   ├── api/
 │   │   ├── auth/[...nextauth]/     # NextAuth API routes
-│   │   └── stripe/
-│   │       ├── checkout/           # Stripe checkout session
-│   │       └── webhooks/           # Stripe webhooks
+│   │   └── admin/
+│   │       └── update-user/        # Admin user management
 │   ├── admin/                      # Admin panel (ADMIN role only)
 │   ├── auth/
 │   │   └── signin/                 # Sign-in page
-│   ├── dashboard/                  # User dashboard with tokens
-│   ├── free-content/               # Free tier content
-│   ├── premium-content/            # Premium subscriber content
-│   ├── pricing/                    # Pricing and plans page
-│   └── error/                      # Error handling page
+│   ├── dashboard/                  # User dashboard
+│   └── free-content/               # Free tier content
 ├── components/
 │   ├── admin/                      # Admin dashboard components
 │   ├── auth/                       # Authentication components
-│   ├── dashboard/                  # Dashboard components
-│   ├── pricing/                    # Pricing components
 │   ├── providers/                  # Context providers
 │   └── ui/                         # ShadcnUI components
 ├── lib/
 │   ├── auth.ts                     # NextAuth configuration
-│   ├── stripe.ts                   # Stripe configuration
-│   ├── stripe-admin.ts             # Stripe admin functions
-│   └── subscription.ts             # Subscription & token utilities
+│   └── prisma.ts                   # Prisma client configuration
 ├── prisma/
 │   ├── schema.prisma               # Database schema with enums
-│   ├── seed.ts                     # Stripe product sync
 │   └── seed-admin.ts               # Admin user setup
 └── types/
     └── next-auth.d.ts              # NextAuth type extensions
@@ -116,11 +84,6 @@ NEXTAUTH_SECRET="your-nextauth-secret-32-characters-minimum"
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
-# Stripe
-STRIPE_SECRET_KEY="sk_test_your-secret-key"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your-publishable-key"
-STRIPE_WEBHOOK_SECRET="whsec_your-webhook-secret"
-
 # Admin Setup
 ADMIN_EMAIL="your-admin-email@example.com"
 
@@ -140,16 +103,13 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 ```bash
 # Generate Prisma client
-yarn prisma generate
+npm run db:generate
 
 # Push schema to database
-yarn prisma db push
-
-# Sync products from Stripe to database
-yarn db:sync-stripe
+npm run db:migrate
 
 # Set up admin user (requires ADMIN_EMAIL env var)
-yarn db:setup-admin
+npm run db:setup-admin
 ```
 
 ### 3. Authentication Setup
@@ -164,44 +124,7 @@ yarn db:setup-admin
    - `http://localhost:3000/api/auth/callback/google`
    - `https://yourdomain.com/api/auth/callback/google`
 
-### 4. Stripe Setup
-
-#### Stripe Dashboard
-
-1. Create account at [Stripe](https://stripe.com)
-2. Get API keys from Developers > API keys
-3. Create products and prices in the dashboard
-4. Set up webhooks pointing to `/api/stripe/webhooks`
-
-#### Product Configuration for Tokens
-
-To enable token allocation, add metadata to your Stripe products:
-
-```json
-{
-  "tokens": "100"
-}
-```
-
-This will allocate 100 tokens to users when they subscribe to this product.
-
-#### Webhook Events
-
-Configure these webhook events in Stripe:
-
-- `product.created`
-- `product.updated`
-- `product.deleted`
-- `price.created`
-- `price.updated`
-- `price.deleted`
-- `checkout.session.completed`
-- `customer.subscription.created`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
-- `payment_intent.succeeded`
-
-### 5. Admin Setup
+### 4. Admin Setup
 
 After setting up the database and environment variables:
 
@@ -210,55 +133,37 @@ After setting up the database and environment variables:
 
 ```bash
 # Set up admin user (user must exist in database first)
-yarn db:setup-admin
+npm run db:setup-admin
 ```
 
 This will update an existing user with the email specified in `ADMIN_EMAIL` and assign them the ADMIN role. The user must have signed in at least once for their record to exist in the database.
 
-### 6. Development
+### 5. Development
 
 ```bash
 # Install dependencies
-yarn install
+npm install
 
 # Start development server
-yarn dev
+npm run dev
 
 # Open http://localhost:3000
 ```
 
 ## 🎯 Key Features Explained
 
-### Token System
-
-- **Automatic Allocation**: Tokens are automatically allocated based on Stripe product metadata
-- **Expiration**: Tokens expire every 30 days
-- **Auto-Renewal**: Active subscribers get their tokens renewed automatically
-- **Usage Tracking**: Track token consumption across your application
-
 ### Admin Panel
 
 Access the admin panel at `/admin` (requires ADMIN role):
 
-- **User Management**: View all users, their roles, and token balances
-- **Subscription Overview**: Monitor active subscriptions and revenue
-- **Payment History**: Track all payments and their status
-- **Product Management**: View Stripe products and their token allocations
+- **User Management**: View all users and their roles
+- **System Statistics**: Monitor user activity
 
 ### Role-Based Access
 
 - **USER**: Basic authenticated users
-- **PREMIUM**: Users with active subscriptions
 - **ADMIN**: Full system access including admin panel
-
-### Simplified Architecture
-
-The system now uses Stripe products as the single source of truth:
-
-- No redundant membership tier tables
-- Direct integration with Stripe data
-- Simplified database schema
-- Better performance with fewer joins
+- **BANNED**: Restricted access
 
 ## 🚦 Usage
 
@@ -268,21 +173,17 @@ The system now uses Stripe products as the single source of truth:
 2. **Authentication**: Sign in with Google
 3. **Dashboard**: Overview of available content
 4. **Free Content**: Accessible to all authenticated users
-5. **Premium Content**: Requires active subscription
-6. **Pricing**: Subscribe to premium plans
-7. **Subscription Management**: View and manage subscriptions
 
 ### Access Control
 
-- **Public**: Landing page, pricing, authentication
+- **Public**: Landing page, authentication
 - **Authenticated**: Dashboard, free content
-- **Subscribed**: Premium content, advanced features
+- **Admin**: User management, system statistics
 
 ## 🔒 Security Features
 
 - Server-side session validation
 - Protected API routes
-- Stripe webhook signature verification
 - Environment variable validation
 - SQL injection prevention (Prisma)
 
@@ -304,20 +205,19 @@ The system now uses Stripe products as the single source of truth:
 
 ```bash
 # Run type checking
-yarn type-check
+npx tsc --noEmit
 
 # Run linting
-yarn lint
+npm run lint
 
 # Build for production
-yarn build
+npm run build
 ```
 
 ## 📚 Documentation Links
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [NextAuth.js Documentation](https://next-auth.js.org)
-- [Stripe Documentation](https://stripe.com/docs)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [ShadcnUI Documentation](https://ui.shadcn.com)
 
@@ -365,31 +265,3 @@ If you encounter a JWT session error, it's usually due to:
    ```
 
 3. **Environment variables**: Ensure all required env vars are set correctly.
-
-### Running Stripe CLI for Webhooks
-
-To test webhooks locally:
-
-Installation: https://docs.stripe.com/stripe-cli?install-method=linux
-
-For wsl:
-
-# Add Stripe's GPG key
-
-curl -s https://packages.stripe.dev/api/security/keypair/stripe-cli-gpg/public | gpg --dearmor | sudo tee /usr/share/keyrings/stripe.gpg > /dev/null
-
-# Add Stripe's repository
-
-echo "deb [signed-by=/usr/share/keyrings/stripe.gpg] https://packages.stripe.dev/stripe-cli-debian-local stable main" | sudo tee -a /etc/apt/sources.list.d/stripe.list
-
-# Update package list
-
-sudo apt update
-
-# Install Stripe CLI
-
-sudo apt install stripe
-
-```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhooks
-```

@@ -8,12 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import getSession from "@/lib/auth";
-import {
-  checkUserAccess,
-  getUserTokens,
-  isUserAdmin,
-} from "@/lib/subscription";
-import { Crown, Gift, TrendingUp, Zap } from "lucide-react";
+import { isUserAdmin } from "@/lib/auth";
+import { Gift } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -24,11 +20,7 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  const [{ hasAccess, subscription }, tokenInfo, isAdmin] = await Promise.all([
-    checkUserAccess(session.user.id),
-    getUserTokens(session.user.id),
-    isUserAdmin(session.user.id),
-  ]);
+  const isAdmin = await isUserAdmin(session.user.id);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,47 +36,7 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            {/* Tokens Card */}
-            <Card
-              className={`${
-                tokenInfo.expired
-                  ? "border-red-200 bg-red-50"
-                  : "border-green-200 bg-green-50"
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-yellow-500" />
-                    Tokens
-                  </div>
-                  <Badge
-                    variant={tokenInfo.expired ? "destructive" : "default"}
-                    className="text-sm"
-                  >
-                    {tokenInfo.tokens}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 mb-2">
-                  {tokenInfo.expired
-                    ? "Your tokens have expired"
-                    : `Expires ${
-                        tokenInfo.expiresAt
-                          ? new Date(tokenInfo.expiresAt).toLocaleDateString()
-                          : "Never"
-                      }`}
-                </p>
-                <div className="text-xs text-gray-500">
-                  {tokenInfo.expired
-                    ? "Renew your subscription to get more tokens"
-                    : "Use tokens to access premium features"}
-                </div>
-              </CardContent>
-            </Card>
-
+          <div className="grid md:grid-cols-1 gap-6 mb-8">
             {/* Free Content Card */}
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader className="pb-3">
@@ -104,99 +56,8 @@ export default async function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Premium Content Card */}
-            <Card
-              className={`${
-                hasAccess ? "border-yellow-200 bg-yellow-50" : "border-gray-200"
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-yellow-500" />
-                  Premium Content
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {hasAccess ? (
-                  <>
-                    <p className="text-sm text-gray-600 mb-4">
-                      You have premium access! Enjoy exclusive content and
-                      features.
-                    </p>
-                    <Button asChild size="sm" className="w-full">
-                      <Link href="/premium-content">
-                        Access Premium Content
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Upgrade to premium to access exclusive content and
-                      advanced features.
-                    </p>
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Link href="/pricing">Upgrade to Premium</Link>
-                    </Button>
-                  </>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
-          {/* Subscription Info */}
-          {subscription && (
-            <Card className="mb-8 border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                  Your Subscription
-                </CardTitle>
-                <CardDescription>Current subscription details</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Status</p>
-                    <p className="text-lg font-semibold capitalize">
-                      {subscription.status}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Plan</p>
-                    <p className="text-lg font-semibold">
-                      {subscription.stripeProduct?.name || "Premium Plan"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Next Billing
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {new Date(
-                        subscription.currentPeriodEnd
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                {subscription.cancelAtPeriodEnd && (
-                  <div className="mt-4 p-3 bg-amber-100 border border-amber-200 rounded-lg">
-                    <p className="text-amber-800 text-sm">
-                      <strong>Note:</strong> Your subscription will end on{" "}
-                      {new Date(
-                        subscription.currentPeriodEnd
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

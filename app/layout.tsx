@@ -2,11 +2,7 @@ import { Navbar } from "@/components/navbar";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import getSession from "@/lib/auth";
-import {
-  checkUserAccess,
-  getUserTokens,
-  isUserAdmin,
-} from "@/lib/subscription";
+import { isUserAdmin } from "@/lib/auth";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
@@ -37,26 +33,17 @@ export default async function RootLayout({
   // Get user data for navbar if authenticated
   let navbarData = {};
   if (session?.user) {
-    const [{ hasAccess, subscription }, tokenInfo, adminStatus] =
-      await Promise.all([
-        checkUserAccess(session.user.id),
-        getUserTokens(session.user.id),
-        isUserAdmin(session.user.id),
-      ]);
+    const adminStatus = await isUserAdmin(session.user.id);
 
     navbarData = {
       user: session.user,
-      hasAccess,
-      tokenInfo,
       isAdmin: adminStatus,
-      hasSubscription: !!subscription,
     };
   }
 
   return (
     <html lang="en">
       <head>
-        <script src="https://js.stripe.com/v3/" async></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

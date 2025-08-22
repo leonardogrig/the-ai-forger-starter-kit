@@ -185,6 +185,38 @@ await prisma.user.update({
 - Data restoration from backups
 - Disaster recovery planning
 
+## Blog Posts System
+
+### BlogPost Model
+```prisma
+model BlogPost {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  title          String
+  content        String   @db.Text
+  originalText   String   @map("original_text") @db.Text
+  imageUrl       String?  @map("image_url")
+  imagePrompt    String?  @map("image_prompt") @db.Text
+  tokensUsed     Int      @map("tokens_used") @default(1)
+  characterCount Int      @map("character_count")
+  slug           String?  @unique
+  isPublished    Boolean  @default(false) @map("is_published")
+  publishedAt    DateTime? @map("published_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+```
+
+### Blog Features
+- AI-powered blog post generation from text input
+- Token-based usage tracking (1 token per 15,000 characters)
+- AI-generated featured images using DALL-E 3
+- Full CRUD operations for managing posts
+- Publication status management
+- SEO-optimized content generation
+
 ## Environment Configuration
 
 ### Database URLs

@@ -13,7 +13,7 @@ import {
   getUserTokens,
   isUserAdmin,
 } from "@/lib/subscription";
-import { Crown, Gift, TrendingUp, Zap } from "lucide-react";
+import { Crown, Gift, TrendingUp, Zap, PenTool, History } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Welcome back,{" "}
-              {session.user.name?.split(" ")[0] || session.user.email}!
+              {session.user.name?.split(' ')[0] || session.user.email}!
             </h1>
             <p className="text-gray-600">
               Here's your personalized dashboard overview
@@ -196,6 +196,58 @@ export default async function DashboardPage() {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {/* AI Tools Section */}
+          {hasAccess && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">AI Tools</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Blog Post Generator */}
+                <Card className="border-purple-200 bg-purple-50 flat-card">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2">
+                      <PenTool className="h-5 w-5 text-purple-500" />
+                      Blog Post Generator
+                    </CardTitle>
+                    <CardDescription>
+                      Transform text into SEO-optimized blog posts with AI-generated images
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Turns YouTube transcripts or rough notes into polished blog content. 
+                      Cost: 1 token per 15,000 characters.
+                    </p>
+                    <Button asChild size="sm" className="w-full flat-button">
+                      <Link href="/blog/generate">Generate Blog Post</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Blog History */}
+                <Card className="border-indigo-200 bg-indigo-50 flat-card">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2">
+                      <History className="h-5 w-5 text-indigo-500" />
+                      Blog History
+                    </CardTitle>
+                    <CardDescription>
+                      View and manage your generated blog posts
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Access all your previously generated blog posts, edit content, 
+                      and manage publications.
+                    </p>
+                    <Button asChild size="sm" variant="outline" className="w-full flat-button">
+                      <Link href="/blog/history">View History</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           )}
         </div>
       </div>

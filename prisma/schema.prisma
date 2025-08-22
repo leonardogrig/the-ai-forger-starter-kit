@@ -90,6 +90,7 @@ model User {
   customer       StripeCustomer?
   stripeProduct  StripeProduct?     @relation(fields: [stripeProductId], references: [id])
   paymentHistory PaymentHistory[]
+  blogPosts      BlogPost[]
 
   @@map("users")
 }
@@ -195,4 +196,27 @@ model PaymentHistory {
   stripeProduct StripeProduct? @relation(fields: [stripeProductId], references: [id])
 
   @@map("payment_history")
+}
+
+// Blog Posts - Generated content with token usage tracking
+model BlogPost {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  title          String
+  content        String   @db.Text
+  originalText   String   @map("original_text") @db.Text
+  imageUrl       String?  @map("image_url")
+  imagePrompt    String?  @map("image_prompt") @db.Text
+  tokensUsed     Int      @map("tokens_used") @default(1)
+  characterCount Int      @map("character_count")
+  slug           String?  @unique
+  isPublished    Boolean  @default(false) @map("is_published")
+  publishedAt    DateTime? @map("published_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("blog_posts")
 }

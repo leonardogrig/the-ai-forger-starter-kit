@@ -15,6 +15,13 @@
 ### Admin API Routes
 - `POST /api/admin/update-user` - Update user role/tokens (admin only)
 
+### Blog API Routes
+- `POST /api/blog/generate` - Generate blog posts from text using AI
+- `GET /api/blog/posts` - List user's blog posts with pagination
+- `GET /api/blog/posts/[id]` - Get specific blog post
+- `PUT /api/blog/posts/[id]` - Update blog post
+- `DELETE /api/blog/posts/[id]` - Delete blog post
+
 ## API Patterns
 
 ### 1. Route Handlers (Next.js 13+)
@@ -130,3 +137,57 @@ const response = await fetch('/api/admin/update-user', {
 - Automatic Stripe data sync via webhooks
 - Manual sync functions for data consistency
 - Cache invalidation on updates
+
+## Blog Post API Details
+
+### Generate Blog Post
+**POST** `/api/blog/generate`
+- Transforms input text into SEO-optimized blog posts
+- Generates AI images using DALL-E 3
+- Tracks token usage (1 token per 15,000 characters)
+- Requires active premium subscription
+
+```typescript
+// Request
+{
+  "originalText": "Your YouTube transcript or notes here..."
+}
+
+// Response
+{
+  "success": true,
+  "blogPost": {
+    "id": "cuid",
+    "title": "Generated Title", 
+    "content": "HTML formatted content",
+    "imageUrl": "https://generated-image-url",
+    "tokensUsed": 2
+  },
+  "tokensUsed": 2,
+  "remainingTokens": 18
+}
+```
+
+### Blog Post CRUD Operations
+
+**GET** `/api/blog/posts`
+- Lists user's blog posts with pagination
+- Query params: `page` (default: 1), `limit` (default: 10)
+
+**GET** `/api/blog/posts/[id]`
+- Retrieves single blog post by ID
+- Only returns posts owned by authenticated user
+
+**PUT** `/api/blog/posts/[id]`
+- Updates blog post title, content, and publication status
+- Request body: `{ title, content, isPublished }`
+
+**DELETE** `/api/blog/posts/[id]`
+- Permanently deletes blog post
+- Only allows deletion of posts owned by authenticated user
+
+### Authentication & Authorization
+All blog endpoints require:
+- Valid session authentication
+- Premium subscription for generation endpoint
+- Sufficient tokens for generation requests
